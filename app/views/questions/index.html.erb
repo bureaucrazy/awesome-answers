@@ -1,10 +1,43 @@
+<%= form_for questions_path, method: :get do %>
+  <%= search_field_tag :search, params[:search] %>
+  <%= submit_tag "Search", class: "btn btn-primary btn-sm" %>
+<% end %>
+
 <h1>All Questions</h1>
-<% @questions.each do |q| %>
+<%= link_to "order by title", questions_path(search: params[:search], order: "title") %>
+<%= link_to "order by body", questions_path(search: params[:search], order: "body") %>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Body</th>
+      <th>View Count</th>
+      <th>Locked</th>
+      <th>Category</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @questions.each do |q| %>
+      <tr>
   <%# These two do the same as the third line %>
   <%# <%= link_to q.title, question_path({id: q.id}) %>
   <%# <%= link_to q.title, q %>
-  <div>
-    <% text = "#{q.id}. #{q.title} (#{q.view_count})" %>
-    <%= link_to( text, question_path(q) ) %>
-  </div>
-<% end %>
+  <!-- <div> -->
+      <td><% text = "#{q.id}" %><%= text %></td>
+      <td><% text = "#{q.title}" %>
+          <%= link_to( text, question_path(q) ) %>
+      </td>
+      <td><% text = "#{q.body}" %><%= text %></td>
+      <td><% text = "#{q.view_count}" %><%= text %></td>
+      <td><% text = "#{q.locked}" %><%= text %></td>
+      <td><% text = "#{q.category_id}" %><%= text %></td>
+    <!-- <% text = "#{q.id}. #{q.title} #{q.body} (#{q.view_count})" %> -->
+    <!-- <%= link_to( text, question_path(q) ) %> -->
+  <!-- </div> -->
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= paginate @questions %>

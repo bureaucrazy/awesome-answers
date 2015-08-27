@@ -2,7 +2,85 @@
 <hr>
 <p><%= @question.body %><p>
 <p>View Count: <%= @question.view_count %></p>
+<p>Category: <%= @question.category_name %></p>
+<p>Created by <%= @question.user_name %> on
+              <%= formatted_date(@question.created_at) %></p>
 <%# This links to the edit page of the question that show a form to edit
 the values already saved %>
-<%= link_to "Edit", edit_question_path(@question), class: "btn btn-info" %>
-<%= link_to "Delete", question_path(@question), method: :delete, data: {confirm: "Are you sure?"}, class: "btn btn-danger"%>
+
+<% if can? :edit, @question %>
+  <%= link_to "Edit", edit_question_path(@question), class: "btn btn-info" %>
+<% end %>
+<% if can? :destroy, @question %>
+  <%= link_to "Delete", question_path(@question), method: :delete,
+  data: {confirm: "Are you sure?"}, class: "btn btn-danger"%>
+<% end %>
+
+<%# This code will produce same result as the next 2 %>
+<%= link_to (@question.locked ? "Lock" : "Un-lock"),
+            question_path(@question, {question: {locked: !@question.locked}}),
+            class: "btn btn-warning", method: :patch %>
+
+<!-- <%= form_for @question do |f| %>
+  <%= f.hidden_field :locked, value: !@question.locked %>
+  <%= f.submit @question.locked ? "Lock" : "Un-lock", class: "btn btn-warning" %>
+<% end %> -->
+
+<!-- <% if @question.locked? %>
+  <%= link_to "Unlock", lock_question_path(@question), method: :patch,
+  data: {confirm: "Are you sure?"}, class: "btn btn-warning"%>
+<% else %>
+  <%= link_to "Lock", lock_question_path(@question), method: :patch,
+  data: {confirm: "Are you sure?"}, class: "btn btn-warning"%>
+<% end %> -->
+
+<h2>New Answer</h2>
+<% if @answer.errors.any? %>
+  <ul>
+    <% @answer.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+  </ul>
+<% end %>
+<%# @answer (not persisted)         -> URL: answers_path         (CREATE) %>
+<%# @answer (persisted (in DB))     -> URL: answer_path(@answer) (UPDATE) %>
+<%#= form_for @answer, url: question_answers_path(@question) do |f| %>
+<%= form_for [@question, @answer] do |f| %>
+  <div class="form-group">
+    <%= f.label :body %>
+    <%= f.text_area :body, class: "form-control" %>
+  </div>
+  <%= f.submit "Create Answer", class: "btn-primary"%>
+<% end %>
+
+<h2>Answers</h2>
+<% @question.answers.each do |ans| %>
+  <%# An ID for each element on the page allows us to navigate directly to that %>
+  <%# element thru the URL. The dom_id is created in the comments_controller. %>
+  <div class="well" id="<%= dom_id(ans) %>">
+    <%= ans.body %>
+    <%# question_answer_path({question_id: @question, id: ans}) %>
+    <%# question_answer_path(@question, ans) %>
+    <%# [@question, ans] %>
+
+    <!-- Uses the custom helper formatted_date -->
+    <p> Created by <%= ans.user_name %> on <%= formatted_date(ans.created_at) %></p>
+    <!-- <p> Created by <%= ans.user_name %> on <%= ans.created_at.strftime("%Y-%b-%d") %></p> -->
+
+    <%= link_to "Delete" , question_answer_path(@question, ans), method: :delete,
+                class: "btn btn-sm btn-danger",
+                data: {confirm: "Are you sure?"} %>
+
+    <h3>Add Comment</h3>
+    <%= form_for [ans, Comment.new] do |f| %>
+      <%= f.text_area :body, placeholder: "add comment here.." %>
+      <%= f.submit "Comment" %>
+    <% end %>
+
+    <% ans.comments.each do |com| %>
+      <div class="well">
+        <%= com.body %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

@@ -1,5 +1,22 @@
 class Question < ActiveRecord::Base
 
+  # has_one :answer
+  # has_many :answers # assumes that you have a model Answer that has a reference
+  # to this model (Question) called question_id (Integer)
+  #
+  # the dependent option is needed because we've added a foreign key Constraint
+  # to our database so the dependent records (in this case answers) must do
+  # something before deleting a question that they reference. The options are:
+  # :destroy -> will delete all teh answers referencing this question before
+  #             deleting the question
+  # :nullfiy -> will make question_id field null in the database before deleting
+  #             the question
+  has_many :answers, dependent: :destroy
+
+  belongs_to :category
+
+  belongs_to :user
+
   # This prevents the record from saving/updating unless a title is provided.
   # validates :title, presence: true,
   #                   uniqueness: true
@@ -32,6 +49,26 @@ class Question < ActiveRecord::Base
     where(["title ILIKE :term OR body ILIKE :term", {term: search_term}])
   end
 
+  def self.search_multiple(words)
+    query = []
+    term = []
+    words.split.each do |word|
+      search_term = "%#{word}%"
+      terms << search_term
+      terms << search_term
+      query << "title ILIKE ? OR body ILIKE ?"
+    end
+    where([query.join(" OR ")] + terms)
+  end
+
+  def user_name
+    if user
+      user.full_name
+    else
+      "Anonymous"
+    end
+  end
+
 
   # The scope does the same as next 3 self. methods.
   # The next two lines of code do the same thing.
@@ -49,6 +86,13 @@ class Question < ActiveRecord::Base
   def self.recent_ten
     recent.ten
   end
+
+  # This line replaces the method below
+  # delegate :name, to: :category                 # @question.name
+  delegate :name, to: :category, prefix: true   # @question.category_name
+  # def category_name
+  #   category.name
+  # end
 
   private
 

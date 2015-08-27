@@ -1,6 +1,43 @@
 Rails.application.routes.draw do
+  resources :users, only: [:new, :create] do
+    # get :hello # nested resource -> prepended with /users/:user_id
+    # get :hello, on: :collection # not nested - doesn't include :id in url
+    #                             # (similar to :new, :index, :create)
+    # get :hello, on: :member     # not nested - includes :id in the url
+    #                             # (very similar to :edit)
+
+    # These two lines does the same as the do block below
+    # get :edit, on: :collection
+    # patch :update, on: :collection
+    collection do
+      get :edit
+      patch :update
+    end
+  end
+  resources :sessions, only: [:new, :create] do
+    # this will create for us a route with DELETE http verb and /sessions
+    # adding the on: :collection option will make it part of the routes for
+    # sessions, which means it won't prepend the routes with /sessions/:session_id
+    delete :destroy, on: :collection
+  end
+
+  patch "/questions/:id/lock" => "questions#lock", as: :lock_question
+
+  # resources :answers
   # resources questions auto-generates all the routes below
-  resources :questions
+  resources :questions do
+    # nesting resources :answers in here makes every URL for answers prepended
+    # with /questions/:question_id
+    # resources():answers, {only: [:create, :destroy]}) # same as below
+    resources :answers, only: [:create, :destroy]
+  end
+
+  # The only: [] will prevent creation of unneccessary routes
+  resources :answers, only: [] do
+    resources :comments, only: [:create, :destroy]
+  end
+
+  # post "/questions/:question_id/answers" =>  "answers#create"
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

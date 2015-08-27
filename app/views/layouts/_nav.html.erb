@@ -10,5 +10,18 @@
         <li><%= link_to "New Question", new_question_path %></li>
       </ul>
     </div>
+      <ul class="nav navbar-nav navbar-right">
+        <% if session[:user_id] %>
+          <li><%= link_to edit_users_path do %>
+            Hello <%= current_user.first_name %>
+            <% end %>
+          </li>
+          <!-- <li><%= link_to "Hello #{current_user.first_name}", edit_users_path %></li> -->
+          <li><%= link_to "Sign out", sessions_path, method: :delete %></li>
+        <% else %>
+          <li><%= link_to "Sign in", new_session_path %></li>
+          <li><%= link_to "Sign up", new_user_path %></li>
+        <% end %>
+      </ul>
   </div>
 </nav>

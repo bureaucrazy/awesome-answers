@@ -1,4 +1,8 @@
 class QuestionsController < ApplicationController
+  before_action :authenticate_user!, except: [:show, :index]
+
+  PER_PAGE = 10
+
   # The before action takes in a required first arg which ref a method that
   # will be exec before any action. You can give it a 2nd arg, which is a
   # hash. Possible keys are: :only and :except if you want to restrict
@@ -6,7 +10,9 @@ class QuestionsController < ApplicationController
   # only: - whitelist
   # except: - blacklist
   # before_action :find_question, except: [:index, :new, :create]
-  before_action :find_question, only: [:show, :edit, :update, :destroy]
+  before_action :find_question, only: [:show, :edit, :update, :destroy, :lock]
+
+  before_action :authorize!, only: [:edit, :update, :destroy]
 
   # the new action is the one that is used by convention in Rails to display
   # a form to create the reocrd (in this case question record)
@@ -21,6 +27,7 @@ class QuestionsController < ApplicationController
   def create
     # question_params => {title: "Abc", body: "xyz"}
     @question = Question.new(question_params)
+    @question.user = current_user
     if @question.save
       # flash[:notice] = "Question created!"
       # passing :notice / :alert only works for redirect
@@ -36,12 +43,20 @@ class QuestionsController < ApplicationController
   def show
     # Instance variable defined in before_action
     # @question = Question.find params[:id]
+    @answer = Answer.new
   end
 
   # GET /questions
   # this is used to show a page with listing of all the questions in our DB
   def index
-    @questions = Question.all.order(:id)
+    if params[:search]
+      # Using .order(params[:order]) is prone to SQL injection. Needs improvement.
+      @questions = Question.search(params[:search]).order(params[:order]).page(params[:page]).per(PER_PAGE)
+    else
+      # @questions = Question.all.order(:id)
+      # Code below uses Kaminari gem to replace code above
+      @questions = Question.order(params[:order]).page(params[:page]).per(PER_PAGE)
+    end
   end
 
   # GET /questions/:id/edit (e.g. /questions/123/edit)
@@ -49,6 +64,8 @@ class QuestionsController < ApplicationController
   def edit
     # Instance variable defined in before_action
     # @question = Question.find params[:id]
+
+    # redirect_to root_path, alert: "Access denied" unless can? :edit, @question
   end
 
   # PATCH /questions/:id (e.g. /questions/123)
@@ -76,10 +93,21 @@ class QuestionsController < ApplicationController
     redirect_to questions_path
   end
 
+  def lock
+    # this toggles the value of locked between true and false
+    @question.locked = !@question.locked
+    @question.save
+    redirect_to question_path(@question)
+  end
+
   private
 
   def find_question
     @question = Question.find params[:id]
+  end
+
+  def authorize!
+    redirect_to root_path, alert: "Access denied" unless can? :manage, @question
   end
 
   def question_params
@@ -91,7 +119,7 @@ class QuestionsController < ApplicationController
     # this is using the strong paramters feature in Rails to only allow
     # the title and body to be updated in the database
 
-    params.require(:question).permit([:title, :body])
+    params.require(:question).permit([:title, :body, :locked, :category_id])
   end
 
 end
