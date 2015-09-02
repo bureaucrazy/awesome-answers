@@ -14,6 +14,14 @@ class Ability
       q.user == user
     end
 
+    can :destroy, [Like, Favourite] do |l|
+      l.user == user
+    end
+
+    # can :destroy, Favourite do |f|
+    #   f.user == user
+    # end
+
     # Define abilities for the passed in user here. For example:
     #
     #   user ||= User.new # guest user (not logged in)

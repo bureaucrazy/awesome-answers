@@ -37,6 +37,7 @@ gem "cowsay"
 gem "bootstrap-sass"
 gem "kaminari"
 gem "cancancan"
+gem "font-awesome-rails"
 # for heroku
 gem "rails_12factor", group: :production
 
@@ -47,6 +48,8 @@ group :development, :test do
   gem "interactive_editor"
   gem "awesome_print"
   gem "hirb"
+
+  gem "rails-erd"
 
   # Access an IRB console on exception pages or by using <%= console %> in views
   gem 'web-console', '~> 2.0'

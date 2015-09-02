@@ -30,6 +30,10 @@ Rails.application.routes.draw do
     # with /questions/:question_id
     # resources():answers, {only: [:create, :destroy]}) # same as below
     resources :answers, only: [:create, :destroy]
+
+    # Many-to-Many relationship
+    resources :likes, only: [:create, :destroy]
+    resources :favourites, only: [:create, :destroy]
   end
 
   # The only: [] will prevent creation of unneccessary routes

@@ -13,6 +13,12 @@ class Question < ActiveRecord::Base
   #             the question
   has_many :answers, dependent: :destroy
 
+  # Many-to-Many relationship
+  has_many :likes, dependent: :destroy
+  has_many :liking_users, through: :likes, source: :user
+  has_many :favourites, dependent: :destroy
+  has_many :favouriting_users, through: :favourites, source: :user
+
   belongs_to :category
 
   belongs_to :user

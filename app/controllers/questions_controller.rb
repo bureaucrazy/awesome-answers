@@ -44,6 +44,9 @@ class QuestionsController < ApplicationController
     # Instance variable defined in before_action
     # @question = Question.find params[:id]
     @answer = Answer.new
+
+    @like = @question.likes.find_by_user_id(current_user.id) if user_signed_in?
+    @favourite = @question.favourites.find_by_user_id(current_user.id) if user_signed_in?
   end
 
   # GET /questions
